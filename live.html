@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TweemAssist — Live Stats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #07070e;
+      --surface: #0e0e18;
+      --border:  rgba(255,255,255,0.06);
+      --accent:  #ff8c00;
+      --white:   #f0f0f5;
+      --muted:   #4a4a5a;
+      --green:   #00e87a;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      cursor: none;
+    }
+
+    .cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s;
+      mix-blend-mode: screen;
+    }
+
+    .cursor-trail {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(255,140,0,0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99998;
+      transform: translate(-50%, -50%);
+      transition: left 0.12s ease, top 0.12s ease;
+    }
+
+    canvas.bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 18px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(7,7,14,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo { font-size: 18px; font-weight: 800; color: var(--white); }
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links { display:flex; gap:32px; list-style:none; }
+    .nav-links a {
+      font-size: 13px; font-weight: 700;
+      color: var(--muted); text-decoration: none;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      padding: 120px 48px 80px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 48px;
+    }
+
+    .page-title {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .page-title span { color: var(--accent); }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--green);
+      background: rgba(0,232,122,0.08);
+      border: 1px solid rgba(0,232,122,0.2);
+      border-radius: 20px;
+      padding: 6px 14px;
+      margin-bottom: 8px;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity:1; } 50% { opacity:0.4; }
+    }
+
+    /* BIG STATS */
+    .big-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+
+    .big-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .big-stat:hover { border-color: rgba(255,140,0,0.2); }
+
+    .big-stat.green-stat { border-color: rgba(0,232,122,0.15); }
+
+    .big-stat-label {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .big-stat-val {
+      font-size: 52px;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      letter-spacing: -2px;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .big-stat-val.green { color: var(--green); }
+
+    /* TOP TWEETS */
+    .section-label {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .tweets-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 48px;
+    }
+
+    .tweet-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .tweet-row:hover {
+      border-color: rgba(255,140,0,0.2);
+      transform: translateX(4px);
+    }
+
+    .tweet-rank {
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      flex-shrink: 0;
+      width: 24px;
+    }
+
+    .tweet-url {
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      color: var(--accent);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tweet-bets {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white);
+      flex-shrink: 0;
+      background: rgba(255,140,0,0.1);
+      border: 1px solid rgba(255,140,0,0.2);
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .refresh-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .last-updated {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+    }
+
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .skeleton {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      height: 56px;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0%,100% { opacity:0.5; } 50% { opacity:1; }
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo { font-size: 14px; font-weight: 800; }
+    .footer-logo span { color: var(--accent); }
+    .footer-links { display:flex; gap:24px; list-style:none; }
+    .footer-links a { font-size:12px; font-family:'DM Mono',monospace; color:var(--muted); text-decoration:none; transition:color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-trail" id="cursorTrail"></div>
+  <canvas class="bg-canvas" id="bgCanvas"></canvas>
+
+  <nav>
+    <div class="nav-logo">Tweem<span>Assist</span></div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="live.html" class="active">Live</a></li>
+      <li><a href="bets.html">Bets</a></li>
+      <li><a href="leaderboard.html">Leaderboard</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+    </ul>
+  </nav>
+
+  <div class="page">
+    <div class="page-header">
+      <h1 class="page-title">Live<br><span>Stats</span></h1>
+      <div>
+        <div class="live-badge">
+          <div class="live-dot"></div>
+          Updating live
+        </div>
+      </div>
+    </div>
+
+    <div class="big-stats">
+      <div class="big-stat">
+        <div class="big-stat-label">All Time Bets</div>
+        <div class="big-stat-val" id="statTotal">—</div>
+      </div>
+      <div class="big-stat">
+        <div class="big-stat-label">Bets Today</div>
+        <div class="big-stat-val" id="statToday">—</div>
+      </div>
+      <div class="big-stat green-stat">
+        <div class="big-stat-label">Live Users Now</div>
+        <div class="big-stat-val green" id="statLive">—</div>
+      </div>
+    </div>
+
+    <div class="section-label">🔥 Most Bet Tweets — Last 24 Hours</div>
+    <div id="tweetsList" class="loading-state">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+
+    <br>
+    <div class="refresh-row">
+      <button class="refresh-btn" id="refreshBtn">↻ Refresh</button>
+      <div class="last-updated" id="lastUpdated"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Tweem<span>Assist</span></div>
+    <ul class="footer-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="privacy.html">Privacy Policy</a></li>
+    </ul>
+  </footer>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const trail  = document.getElementById('cursorTrail');
+    document.addEventListener('mousemove', e => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top  = e.clientY + 'px';
+      setTimeout(() => {
+        trail.style.left = e.clientX + 'px';
+        trail.style.top  = e.clientY + 'px';
+      }, 80);
+    });
+
+    // Background canvas
+    const canvas = document.getElementById('bgCanvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles = [], mx = 500, my = 500;
+
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    function initParticles() {
+      particles = Array.from({ length: Math.floor(W*H/20000) }, () => ({
+        x: Math.random()*W, y: Math.random()*H,
+        r: Math.random()*1.2+0.3,
+        vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25,
+        a: Math.random()*0.4+0.1,
+      }));
+    }
+
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+
+    function draw() {
+      ctx.clearRect(0,0,W,H);
+      const g = ctx.createRadialGradient(mx,my,0,mx,my,280);
+      g.addColorStop(0,'rgba(255,140,0,0.035)'); g.addColorStop(1,'transparent');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+      particles.forEach(p => {
+        const dx=mx-p.x, dy=my-p.y, d=Math.sqrt(dx*dx+dy*dy);
+        if(d<180){ p.vx+=dx/d*0.008; p.vy+=dy/d*0.008; }
+        p.vx*=0.98; p.vy*=0.98; p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,140,0,${p.a})`; ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+
+    resize(); initParticles(); draw();
+    window.addEventListener('resize', () => { resize(); initParticles(); });
+
+    // Stats
+    const SERVER = 'https://tweemassist-server.onrender.com';
+
+    function fmt(n) {
+      if (!n) return '0';
+      if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+      if (n >= 1000) return (n/1000).toFixed(1)+'K';
+      return String(n);
+    }
+
+    async function loadStats() {
+      try {
+        const res  = await fetch(`${SERVER}/stats`);
+        const data = await res.json();
+
+        document.getElementById('statTotal').textContent = fmt(data.total_bets);
+        document.getElementById('statToday').textContent = fmt(data.bets_today);
+        document.getElementById('statLive').textContent  = data.active_users || 0;
+
+        const list = document.getElementById('tweetsList');
+        if (!data.top_tweets?.length) {
+          list.innerHTML = '<div class="empty-state">No bets placed in the last 24 hours yet.<br>Install TweemAssist and be the first! 🎯</div>';
+        } else {
+          list.className = 'tweets-list';
+          list.innerHTML = data.top_tweets.map((t, i) => `
+            <a class="tweet-row" href="${t.tweet_url}" target="_blank" rel="noopener">
+              <div class="tweet-rank">${String(i+1).padStart(2,'0')}</div>
+              <div class="tweet-url">${t.tweet_url.replace('https://x.com/','x.com/')}</div>
+              <div class="tweet-bets">🎯 ${t.bet_count} bet${t.bet_count !== 1 ? 's' : ''}</div>
+            </a>
+          `).join('');
+        }
+
+        const now = new Date();
+        document.getElementById('lastUpdated').textContent =
+          `Last updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+      } catch {
+        document.getElementById('tweetsList').innerHTML =
+          '<div class="empty-state">Could not connect to server. Try again in a moment.</div>';
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadStats);
+    loadStats();
+    setInterval(loadStats, 60000); // auto refresh every minute
+  </script>
+</body>
+</html>

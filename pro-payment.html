@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TweemAssist Pro — Unlock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #07070e;
+      --surface:#0e0e18;
+      --border: rgba(255,255,255,0.06);
+      --gold:   #ffd700;
+      --white:  #f0f0f5;
+      --muted:  #4a4a5a;
+      --green:  #00e87a;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: linear-gradient(160deg, #0a0a0f 0%, #0f0e08 100%);
+      border: 1px solid rgba(255,215,0,0.15);
+      border-radius: 16px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 0 60px rgba(255,215,0,0.06);
+    }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .logo span { color: #ff8c00; }
+
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,215,0,0.08);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--gold);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--gold);
+      text-shadow: 0 0 30px rgba(255,215,0,0.2);
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    /* QR */
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .qr-wrap {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px;
+      display: inline-block;
+    }
+
+    .qr-wrap img {
+      display: block;
+      border-radius: 4px;
+    }
+
+    .qr-note {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Info rows */
+    .info-block {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,215,0,0.08);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .info-row {
+      margin-bottom: 12px;
+    }
+
+    .info-row:last-child { margin-bottom: 0; }
+
+    .info-label {
+      font-size: 9px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .info-value-wrap {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .info-value {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--white);
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 6px 10px;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .info-value.highlight {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 2px;
+      background: rgba(255,215,0,0.06);
+      border: 1px solid rgba(255,215,0,0.15);
+    }
+
+    .copy-btn {
+      padding: 6px 12px;
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 6px;
+      color: var(--gold);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover { background: rgba(255,215,0,0.2); }
+
+    /* Verify button */
+    .verify-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 24px rgba(255,215,0,0.2);
+      margin-bottom: 10px;
+    }
+
+    .verify-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 32px rgba(255,215,0,0.35);
+    }
+
+    .verify-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-msg {
+      text-align: center;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      min-height: 20px;
+      line-height: 1.5;
+    }
+
+    .status-msg.success { color: var(--green); }
+    .status-msg.error   { color: #ff4444; }
+
+    /* Success state */
+    .success-state {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .success-emoji { font-size: 48px; margin-bottom: 12px; }
+
+    .success-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+
+    .success-sub {
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .close-note {
+      font-size: 10px;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 20px;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div style="text-align:center">
+      <div class="logo">Tweem<span>Assist</span></div>
+      <div class="pro-badge">🔥 Pro Unlock</div>
+      <h1>TweemAssist Pro</h1>
+      <p class="subtitle">$10/month · 30 days access · Cancel anytime</p>
+    </div>
+
+    <div id="paymentSection">
+      <!-- QR Code -->
+      <div class="qr-section">
+        <div class="qr-wrap">
+          <img id="qrImg" width="200" height="200" alt="Solana Pay QR" />
+        </div>
+        <div class="qr-note">Scan with Phantom or any Solana wallet<br>Address, amount & memo are pre-filled ✓</div>
+      </div>
+
+      <!-- Payment details -->
+      <div class="info-block">
+        <div class="info-row">
+          <div class="info-label">Wallet Address</div>
+          <div class="info-value-wrap">
+            <div class="info-value" id="walletAddr">5aAYsZvhrMkNW15hHjKMoknRJX6q6NoJSPq8hbncYaoh</div>
+            <button class="copy-btn" onclick="copy('walletAddr', this)">Copy</button>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Amount</div>
+          <div class="info-value-wrap">
+            <div class="info-value" id="solAmount">Loading...</div>
+            <button class="copy-btn" onclick="copy('solAmount', this)">Copy</button>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Memo / Reference (required)</div>
+          <div class="info-value-wrap">
+            <div class="info-value highlight" id="refCode">Loading...</div>
+            <button class="copy-btn" onclick="copy('refCode', this)">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="verify-btn" id="verifyBtn" onclick="verifyPayment()">
+        ✓ I've paid — verify now
+      </button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <!-- Success state -->
+    <div class="success-state" id="successState">
+      <div class="success-emoji">🎉</div>
+      <div class="success-title">Pro Activated!</div>
+      <div class="success-sub">Welcome to TweemAssist Pro.<br>You now have <span id="daysLeft">30</span> days of access.<br><br>Close this tab and reopen the extension<br>to access your Pro features.</div>
+    </div>
+
+    <div class="close-note">You can close this tab after payment is verified</div>
+  </div>
+
+  <script>
+    const SERVER = 'https://tweemassist-server.onrender.com';
+    const WALLET = '5aAYsZvhrMkNW15hHjKMoknRJX6q6NoJSPq8hbncYaoh';
+
+    // Get params from URL
+    const params    = new URLSearchParams(window.location.search);
+    const xId       = params.get('xid');
+    const reference = params.get('ref');
+
+    if (!xId || !reference) {
+      document.getElementById('statusMsg').textContent = 'Invalid payment link. Please try again from the extension.';
+      document.getElementById('statusMsg').className = 'status-msg error';
+      document.getElementById('verifyBtn').disabled = true;
+    } else {
+      init();
+    }
+
+    async function init() {
+      document.getElementById('refCode').textContent = reference;
+
+      // Get live SOL price
+      let solAmount = '0.1000';
+      try {
+        const res  = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
+        const data = await res.json();
+        const price = data?.solana?.usd || 100;
+        solAmount = (10 / price).toFixed(4);
+      } catch {}
+
+      document.getElementById('solAmount').textContent = solAmount + ' SOL ≈ $10';
+
+      // Generate Solana Pay URL
+      const solanaPayUrl = `solana:${WALLET}?amount=${solAmount}&label=TweemAssist%20Pro&message=TweemAssist%20Pro%20Subscription&memo=${reference}`;
+
+      // QR code via qrserver.com — works on websites no problem
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(solanaPayUrl)}&bgcolor=ffffff&color=000000&margin=2`;
+      document.getElementById('qrImg').src = qrUrl;
+    }
+
+    async function verifyPayment() {
+      const btn = document.getElementById('verifyBtn');
+      const msg = document.getElementById('statusMsg');
+
+      btn.disabled    = true;
+      btn.textContent = 'Checking...';
+      msg.textContent = '';
+      msg.className   = 'status-msg';
+
+      try {
+        const res  = await fetch(`${SERVER}/verify-payment`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ reference, x_id: xId }),
+        });
+        const data = await res.json();
+
+        if (data.verified) {
+          // Show success
+          document.getElementById('paymentSection').style.display = 'none';
+          document.getElementById('successState').style.display   = 'block';
+          document.getElementById('daysLeft').textContent = data.days_remaining || 30;
+
+          // Notify extension via localStorage
+          localStorage.setItem('ta_pro_activated', JSON.stringify({
+            is_pro:         true,
+            days_remaining: data.days_remaining || 30,
+            expires_at:     data.expires_at,
+          }));
+        } else {
+          btn.disabled    = false;
+          btn.textContent = '✓ I\'ve paid — verify now';
+          msg.textContent = 'Payment not found yet. Wait a moment and try again.';
+          msg.className   = 'status-msg error';
+        }
+      } catch {
+        btn.disabled    = false;
+        btn.textContent = '✓ I\'ve paid — verify now';
+        msg.textContent = 'Connection error. Please try again.';
+        msg.className   = 'status-msg error';
+      }
+    }
+
+    function copy(id, btn) {
+      const text = document.getElementById(id).textContent.split(' ')[0];
+      navigator.clipboard.writeText(text).catch(() => {});
+      btn.textContent = '✓';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+  </script>
+</body>
+</html>
